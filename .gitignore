@@ -8,3 +8,5 @@ venv/
 env/
 ENV/
 .venv
+
+whiteboard.txt
