@@ -6,6 +6,8 @@ from app.core.deps import get_db
 from app.models.user import User
 from app.models.reminder import Reminder
 from app.services.scheduler import schedule_reminder
+from app.nlp.parser import parse_reminder_text
+
 
 router = APIRouter(prefix="/telegram", tags=["Telegram"])
 
@@ -41,20 +43,23 @@ def telegram_webhook(payload: dict, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(user)
 
-    # Handle commands
-    if text.startswith("/test"):
-        trigger_time = datetime.now(timezone.utc) + timedelta(seconds=10)
+  
+    parsed = parse_reminder_text(text, user.timezone)
 
-        reminder = Reminder(
-            user_id=user.id,
-            message="Test reminder fired!",
-            trigger_time=trigger_time
-        )
+    if not parsed:
+        return {"ok": True}
 
-        db.add(reminder)
-        db.commit()
-        db.refresh(reminder)
+    reminder = Reminder(
+        user_id=user.id,
+        telegram_id=telegram_id,
+        message=parsed["message"],
+        trigger_time=parsed["trigger_time"]
+    )
 
-        schedule_reminder(reminder.id, reminder.trigger_time)
+    db.add(reminder)
+    db.commit()
+    db.refresh(reminder)
+
+    schedule_reminder(reminder.id, reminder.trigger_time)
 
     return {"ok": True}
