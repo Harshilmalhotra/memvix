@@ -1,14 +1,22 @@
+from app.core.database import Base
 from sqlalchemy import Column, Integer, BigInteger, String, DateTime, ForeignKey
 from sqlalchemy.sql import func
-from app.core.database import Base
+import uuid
 
 class Reminder(Base):
     __tablename__ = "reminders"
 
     id = Column(Integer, primary_key=True, index=True)
 
+    public_id = Column(
+        String,
+        unique=True,
+        index=True,
+        default=lambda: uuid.uuid4().hex[:8]  # e.g. a3f91c2d
+    )
+
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    telegram_id = Column(BigInteger, nullable=False)  # 🔥 NEW
+    telegram_id = Column(BigInteger, nullable=False)
 
     message = Column(String, nullable=False)
     trigger_time = Column(DateTime(timezone=True), nullable=False)
