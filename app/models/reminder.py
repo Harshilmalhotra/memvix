@@ -12,7 +12,7 @@ class Reminder(Base):
         String,
         unique=True,
         index=True,
-        default=lambda: uuid.uuid4().hex[:8]  # e.g. a3f91c2d
+        default=lambda: uuid.uuid4().hex[:8]
     )
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
@@ -20,6 +20,8 @@ class Reminder(Base):
 
     message = Column(String, nullable=False)
     trigger_time = Column(DateTime(timezone=True), nullable=False)
+
+    timezone = Column(String, default="UTC")  # 🔥 ADD THIS
 
     status = Column(String, default="scheduled")
     created_at = Column(DateTime(timezone=True), server_default=func.now())

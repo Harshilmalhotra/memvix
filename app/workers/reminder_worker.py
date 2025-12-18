@@ -32,8 +32,7 @@ def run_worker():
                         remove_reminder(reminder_id)
                         continue
 
-                    # Timezone handling (default UTC if missing)
-                    user_tz = ZoneInfo(reminder.user.timezone or "UTC")
+                    user_tz = ZoneInfo(reminder.timezone or "UTC")
                     local_time = reminder.trigger_time.astimezone(user_tz)
 
                     send_message(
@@ -46,9 +45,9 @@ def run_worker():
 
                     reminder.status = "sent"
                     db.commit()
+                    remove_reminder(reminder_id)
 
                     print(f"📨 Sent reminder {reminder.id}")
-                    remove_reminder(reminder_id)
 
                 except Exception as e:
                     print(f"❌ Failed reminder {reminder_id}: {e}")

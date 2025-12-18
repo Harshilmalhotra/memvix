@@ -1,6 +1,7 @@
 from zoneinfo import ZoneInfo
 
-def format_reminder_line(reminder, user_timezone):
+
+def format_reminder_line(reminder, user_timezone: str) -> str:
     local_time = reminder.trigger_time.astimezone(
         ZoneInfo(user_timezone)
     )

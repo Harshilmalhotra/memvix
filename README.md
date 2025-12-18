@@ -40,4 +40,7 @@ docker compose down
 ---
 source venv/bin/activate     
 
+uvicorn app.main:app --reload
+
+
 ngrok http --url=barotropic-unsportful-may.ngrok-free.dev 8080
