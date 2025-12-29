@@ -1,11 +1,21 @@
 import requests
 import os
-
 from dotenv import load_dotenv
 
 load_dotenv()  # 🔥 REQUIRED
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+DEPLOYMENT = os.getenv("DEPLOYMENT")
+
+if DEPLOYMENT == "local":
+    BOT_TOKEN = os.getenv("LOCAL_BOT_TOKEN")
+elif DEPLOYMENT == "PROD":
+    BOT_TOKEN = os.getenv("PROD_BOT_TOKEN")
+else:
+    raise RuntimeError("Invalid DEPLOYMENT value. Must be 'local' or 'PROD'.")
+
+if not BOT_TOKEN:
+    raise RuntimeError("BOT_TOKEN not set for current DEPLOYMENT")
+
 TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
 
@@ -39,4 +49,3 @@ def answer_callback_query(callback_query_id: str, text: str | None = None):
         json=payload,
         timeout=5
     )
-   
