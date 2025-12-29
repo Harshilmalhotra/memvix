@@ -44,3 +44,9 @@ uvicorn app.main:app --reload
 
 
 ngrok http --url=barotropic-unsportful-may.ngrok-free.dev 8000
+
+
+
+docker compose down -v
+docker compose build
+docker compose up
