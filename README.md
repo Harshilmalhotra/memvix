@@ -1,3 +1,43 @@
+## For server deployment
+ #### Run 
+```
+docker compose down -v
+```
+```
+docker compose build
+```
+```
+docker compose up
+```
+
+### For local deployment
+
+```
+uvicorn app.main:app --reload
+```
+
+```
+python -m app.workers.reminder_worker
+```
+```
+docker compose -f docker-compose.infra.yml up -d
+```
+
+```
+python scripts/set_webhook.py
+```
+```
+python -m app.init_db
+```
+
+
+
+
+
+---
+
+### Whiteboard
+
 Create venv
 python3.11 -m venv memvix
 
@@ -46,7 +86,3 @@ uvicorn app.main:app --reload
 ngrok http --url=barotropic-unsportful-may.ngrok-free.dev 8000
 
 
-
-docker compose down -v
-docker compose build
-docker compose up
