@@ -21,7 +21,7 @@ def handle_create_reminder(db, user, telegram_id, text):
             status="scheduled"
         )
 
-        user.pending_trigger_time = None  # 🔥 clear state
+        user.pending_trigger_time = None  #  clear state
 
         db.add(reminder)
         db.commit()
@@ -105,14 +105,14 @@ def handle_create_reminder(db, user, telegram_id, text):
     }
 
     send_message(
-        telegram_id,
-        (
+        chat_id=telegram_id,
+        text=(
             "✅ *Okay! Reminder set*\n\n"
             f"🆔 *ID:* `{reminder.public_id}`\n"
             f"🗓 *When:* {formatted_time}\n"
             f"📝 *What:* {reminder.message}"
         ),
-        reply_markup=keyboard
+        reply_markup=keyboard,
     )
 
     return True

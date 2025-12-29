@@ -8,7 +8,7 @@ from app.handlers.callbacks import handle_callback
 from app.handlers.commands import handle_command
 from app.handlers.onboarding import handle_onboarding
 from app.handlers.reminders import handle_create_reminder
-from app.handlers.location import handle_location  # 🔥 NEW
+from app.handlers.location import handle_location 
 
 router = APIRouter(prefix="/telegram", tags=["Telegram"])
 
