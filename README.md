@@ -40,6 +40,7 @@ python -m app.init_db
 
 
 docker exec -it remindz_postgres psql -U remindz      
+TRUNCATE TABLE reminders, users RESTART IDENTITY CASCADE;
 
 
 Create venv

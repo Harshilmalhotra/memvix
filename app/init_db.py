@@ -1,3 +1,4 @@
+# app/init_db.py
 from app.core.database import engine, Base
 from app.models.user import User
 from app.models.reminder import Reminder
