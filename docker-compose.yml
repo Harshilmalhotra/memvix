@@ -56,5 +56,17 @@ services:
       - "6379:6379"
     restart: always
 
+  webhook-init:
+    build: .
+    container_name: remindz_webhook_init
+    depends_on:
+      - ngrok
+      - api
+    env_file:
+      - .env
+    command: python scripts/set_webhook.py
+    restart: "no"
+
+
 volumes:
   pgdata:
