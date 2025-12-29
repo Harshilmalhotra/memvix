@@ -38,6 +38,18 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+
+  ngrok:
+  image: ngrok/ngrok:latest
+  command: start --all --config /etc/ngrok.yml
+  env_file:
+    - .env
+  volumes:
+    - ./ngrok.yml:/etc/ngrok.yml:ro
+  ports:
+    - "4040:4040"
+
+
   redis:
     image: redis:7
     container_name: remindz_redis
