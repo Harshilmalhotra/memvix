@@ -38,6 +38,10 @@ python -m app.init_db
 
 ### Whiteboard
 
+
+docker exec -it remindz_postgres psql -U remindz      
+
+
 Create venv
 python3.11 -m venv memvix
 

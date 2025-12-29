@@ -3,9 +3,9 @@ from zoneinfo import ZoneInfo
 from sqlalchemy.orm import Session
 
 from app.models.reminder import Reminder
+from app.models.user import User
 from app.services.telegram_client import send_message
 from app.utils.reminder_format import format_reminder_line
-
 
 
 # -----------------------------
@@ -37,6 +37,14 @@ def handle_command(
     False otherwise.
     """
 
+    text = text.strip().lower()
+
+    # ─────────────────────────────
+    # Change timezone (NEW)
+    # ─────────────────────────────
+    if text == "/changetimezone":
+        return handle_change_timezone(telegram_id, user, db)
+
     if text.startswith("/list"):
         return handle_list(telegram_id, user, db)
 
@@ -45,6 +53,16 @@ def handle_command(
 
     if text == "/tomorrow":
         return handle_day(telegram_id, user, db, days_offset=1)
+    
+    if text == "/start":
+        send_message(
+            telegram_id,
+            "👋 You’re already set up!\n\n"
+            "You can now create reminders.\n"
+            "_Example: Remind me tomorrow at 7 PM to call mom_\n\n"
+            "Use /changetimezone if you want to update your timezone."
+        )
+        return True
 
     return False
 
@@ -52,6 +70,30 @@ def handle_command(
 # -----------------------------
 # Commands
 # -----------------------------
+def handle_change_timezone(
+    telegram_id: int,
+    user: User,
+    db: Session
+) -> bool:
+    """
+    Resets onboarding state so user can reselect country & timezone.
+    """
+
+    user.country = None
+    user.timezone = None
+    db.commit()
+
+    send_message(
+        telegram_id,
+        "🌍 Let’s update your timezone.\n\n"
+        "Which country are you in?\n"
+        "_Example: India, USA, UK_\n\n"
+        "📍 You can also *share your location* to auto-detect it."
+    )
+
+    return True
+
+
 def handle_list(telegram_id: int, user, db: Session) -> bool:
     reminders = (
         db.query(Reminder)

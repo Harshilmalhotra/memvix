@@ -9,7 +9,7 @@ class User(Base):
     telegram_id = Column(BigInteger, unique=True, index=True)
     first_name = Column(String)
     username = Column(String)
-    timezone = Column(String, default="Asia/Kolkata")
+    timezone = Column(String, nullable=True)
     preferences = Column(JSON, default=dict)
-
+    country = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

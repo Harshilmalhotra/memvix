@@ -9,9 +9,13 @@ def handle_create_reminder(db, user, telegram_id, text):
     if not parsed:
         send_message(
             telegram_id,
-            "🤔 I couldn’t fully understand the time.\n"
-            "Can you rephrase?"
+            "🤔 I couldn’t understand that.\n\n"
+            "Try something like:\n"
+            "• Remind me in *30 seconds*\n"
+            "• Remind me tomorrow at *7 PM*\n"
+            "• Remind me on *Monday at 10 AM*"
         )
+
         return True
 
     reminder = Reminder(
