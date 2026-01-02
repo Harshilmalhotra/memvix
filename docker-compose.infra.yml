@@ -17,5 +17,16 @@ services:
     ports:
       - "6379:6379"
 
+
+  duckling:
+    image: rasa/duckling:latest
+    container_name: memvix_duckling
+    platform: linux/amd64
+    ports:
+      - "8001:8000"
+    restart: unless-stopped
+
+
+
 volumes:
   pgdata:

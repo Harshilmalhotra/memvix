@@ -68,5 +68,12 @@ services:
     restart: "no"
 
 
+  duckling:
+    image: rasa/duckling:latest
+    container_name: memvix_duckling
+    restart: unless-stopped
+
+
+
 volumes:
   pgdata:

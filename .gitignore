@@ -8,6 +8,12 @@ venv/
 env/
 ENV/
 .venv
+.env*
+.env.local
+.env.prod
+.env.production
+.env.testing
+.env.staging
 
 whiteboard.txt
 memvix/

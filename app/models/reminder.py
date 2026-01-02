@@ -1,3 +1,4 @@
+# app/models/reminder.py
 from app.core.database import Base
 from sqlalchemy import Column, Integer, BigInteger, String, DateTime, ForeignKey
 from sqlalchemy.sql import func

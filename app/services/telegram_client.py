@@ -4,16 +4,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-
-DEPLOYMENT = os.getenv("DEPLOYMENT")
-
-if DEPLOYMENT == "local":
-    BOT_TOKEN = os.getenv("LOCAL_BOT_TOKEN")
-elif DEPLOYMENT == "PROD":
-    BOT_TOKEN = os.getenv("PROD_BOT_TOKEN")
-else:
-    raise RuntimeError("Invalid DEPLOYMENT value")
-
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 if not BOT_TOKEN:
     raise RuntimeError("BOT_TOKEN not set")
 
