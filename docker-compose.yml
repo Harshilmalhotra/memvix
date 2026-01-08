@@ -76,6 +76,17 @@ services:
       - "8001:8000"
     restart: unless-stopped
 
+  db-init:
+    build: .
+    container_name: remindz_db_init
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    command: python -m app.init_db
+    restart: "no"
+  
+
 
 
 volumes:
