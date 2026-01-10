@@ -9,43 +9,34 @@ from app.nlp.parser import parse_reminder_text
 
 def handle_create_reminder(db, user, telegram_id, text):
     # ─────────────────────────────
-    # 1️⃣ COMPLETE PENDING REMINDER
+    # 1️⃣ CHECK PENDING STATES (Conversation Flow)
     # ─────────────────────────────
+    
+    # Case A: User has pending time, provided message now
     if user.pending_trigger_time:
-        reminder = Reminder(
-            user_id=user.id,
-            telegram_id=telegram_id,
-            message=text.strip(),
-            trigger_time=user.pending_trigger_time,
-            timezone=user.timezone,
-            status="scheduled"
-        )
+        # The input text IS the message
+        return _create_reminder(db, user, telegram_id, text, user.pending_trigger_time)
 
-        user.pending_trigger_time = None  #  clear state
-
-        db.add(reminder)
-        db.commit()
-        db.refresh(reminder)
-
-        schedule_reminder(reminder.id, reminder.trigger_time)
-
-        formatted_time = format_datetime_for_user(
-            reminder.trigger_time,
-            user.timezone
-        )
-
-        send_message(
-            telegram_id,
-            (
-                "✅ *Reminder set!*\n\n"
-                f"🗓 *When:* {formatted_time}\n"
-                f"📝 *What:* {reminder.message}"
-            )
-        )
+    # Case B: User has pending message, provided time now
+    if user.pending_reminder_message:
+        # The input text SHOULD contain time
+        # strict=False allows "10 pm" without "remind me"
+        parsed_time = parse_reminder_text(text, user.timezone, strict=False)
+        
+        # If text is JUST time (e.g. "Tomorrow at 5pm"), parser might return intent="create_reminder_missing_message"
+        # because it stripped the time and found no message. PRECISELY WHAT WE WANT.
+        if parsed_time and parsed_time["trigger_time"]:
+             return _create_reminder(db, user, telegram_id, user.pending_reminder_message, parsed_time["trigger_time"])
+        
+        # If users says "Actually remind me to buy milk tomorrow", we might restart flow?
+        # For now, let's try to extract time from whatever they said.
+        
+        send_message(telegram_id, "⏰ I still need the time. When should I remind you?")
         return True
 
+
     # ─────────────────────────────
-    # 2️⃣ NORMAL NLP FLOW
+    # 2️⃣ NEW REMINDER (NLP)
     # ─────────────────────────────
     parsed = parse_reminder_text(text, user.timezone)
 
@@ -61,27 +52,53 @@ def handle_create_reminder(db, user, telegram_id, text):
         )
         return True
 
-    # ⚠️ Time present, message missing
+    # 🔶 Case: Missing Message -> Ask "What?"
     if parsed["intent"] == "create_reminder_missing_message":
         user.pending_trigger_time = parsed["trigger_time"]
+        user.pending_reminder_message = None # Clear other state
+        db.add(user)
         db.commit()
+        db.refresh(user)
+
+        formatted_time = format_datetime_for_user(parsed["trigger_time"], user.timezone)
+        send_message(
+            telegram_id,
+            f"⏰ Got it for *{formatted_time}*.\n\nWhat should I remind you about?"
+        )
+        return True
+
+    # 🔶 Case: Missing Time -> Ask "When?"
+    if parsed["intent"] == "create_reminder_missing_time":
+        user.pending_reminder_message = parsed["message"]
+        user.pending_trigger_time = None # Clear other state
+        db.add(user)
+        db.commit()
+        db.refresh(user)
 
         send_message(
             telegram_id,
-            "⏰ Got it!\n\n"
-            "What should I remind you about?"
+            f"📝 Reminder: *{parsed['message']}*\n\nWhen should I remind you?"
         )
         return True
 
     # ✅ Fully valid reminder
-    if parsed["intent"] != "create_reminder":
-        return True
+    if parsed["intent"] == "create_reminder":
+        return _create_reminder(db, user, telegram_id, parsed["message"], parsed["trigger_time"])
 
+    return True
+
+
+def _create_reminder(db, user, telegram_id, message, trigger_time):
+    # Clear valid states
+    user.pending_trigger_time = None
+    user.pending_reminder_message = None
+    db.add(user)
+    
     reminder = Reminder(
         user_id=user.id,
         telegram_id=telegram_id,
-        message=parsed["message"],
-        trigger_time=parsed["trigger_time"],
+        message=message.strip(),
+        trigger_time=trigger_time,
         timezone=user.timezone,
         status="scheduled"
     )

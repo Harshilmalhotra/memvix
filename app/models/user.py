@@ -13,4 +13,5 @@ class User(Base):
     preferences = Column(JSON, default=dict)
     country = Column(String, nullable=True)
     pending_trigger_time = Column(DateTime, nullable=True)
+    pending_reminder_message = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
