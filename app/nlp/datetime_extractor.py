@@ -1,10 +1,12 @@
 # app/nlp/datetime_extractor.py
-
+import os
 import requests
 from datetime import datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
+from dotenv import load_dotenv
 
-DUCKLING_URL = "http://localhost:8001/parse"
+load_dotenv()
+DUCKLING_URL = os.getenv("DUCKLING_URL", "http://memvix_duckling:8000/parse")
 
 
 FUZZY_DEFAULTS = {

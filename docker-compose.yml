@@ -1,42 +1,49 @@
 version: "3.9"
 
 services:
-  api:
-    build: .
-    container_name: remindz_api
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
-    ports:
-      - "8000:8000"
-    env_file:
-      - .env
-    depends_on:
-      - postgres
-      - redis
-    restart: always
-
-  worker:
-    build: .
-    container_name: remindz_worker
-    command: python -m app.workers.reminder_worker
-    env_file:
-      - .env
-    depends_on:
-      - postgres
-      - redis
-    restart: always
 
   postgres:
     image: postgres:15
     container_name: remindz_postgres
-    restart: always
     environment:
       POSTGRES_USER: remindz
       POSTGRES_PASSWORD: remindz
       POSTGRES_DB: remindz
-    ports:
-      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U remindz"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+
+  redis:
+    image: redis:7
+    container_name: remindz_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: always
+
+
+  duckling:
+    image: rasa/duckling:latest
+    container_name: memvix_duckling
+    platform: linux/amd64
+    ports:
+      - "8001:8000"
+    restart: unless-stopped
+
+
+
 
   ngrok:
     image: ngrok/ngrok:latest
@@ -49,32 +56,8 @@ services:
       - "4040:4040"
     restart: always
 
-  redis:
-    image: redis:7
-    container_name: remindz_redis
-    ports:
-      - "6379:6379"
-    restart: always
-
-  webhook-init:
-    build: .
-    container_name: remindz_webhook_init
-    depends_on:
-      - ngrok
-      - api
-    env_file:
-      - .env
-    command: python scripts/set_webhook.py
-    restart: "no"
 
 
-  duckling:
-    image: rasa/duckling:latest
-    container_name: memvix_duckling
-    platform: linux/amd64
-    ports:
-      - "8001:8000"
-    restart: unless-stopped
 
   db-init:
     build: .
@@ -82,11 +65,59 @@ services:
     env_file:
       - .env
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     command: python -m app.init_db
     restart: "no"
-  
 
+
+  webhook-init:
+    build: .
+    container_name: remindz_webhook_init
+    env_file:
+      - .env
+    depends_on:
+      ngrok:
+        condition: service_started
+    command: python scripts/set_webhook.py
+    restart: "no"
+
+
+
+  api:
+    build: .
+    container_name: remindz_api
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+      webhook-init:
+        condition: service_completed_successfully
+    restart: always
+
+
+  worker:
+    build: .
+    container_name: remindz_worker
+    command: python -m app.workers.reminder_worker
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_started
+    restart: always
 
 
 volumes:
