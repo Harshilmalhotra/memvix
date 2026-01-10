@@ -1,17 +1,43 @@
+
+FROM python:3.11-slim as builder
+
+WORKDIR /app
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+
+COPY requirements.txt .
+RUN pip install --prefix=/install --no-cache-dir -r requirements.txt
+
+
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# system deps
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH="/usr/local/bin:$PATH"
 
-# install python deps
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
-# copy app
+RUN useradd -m -u 1000 appuser
+
+
+COPY --from=builder /install /usr/local
+
+
 COPY . .
 
-ENV PYTHONUNBUFFERED=1
+
+RUN chown -R appuser:appuser /app
+
+
+USER appuser
+
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
