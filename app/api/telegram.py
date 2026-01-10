@@ -9,6 +9,8 @@ from app.handlers.commands import handle_command
 from app.handlers.onboarding import handle_onboarding
 from app.handlers.reminders import handle_create_reminder
 from app.handlers.location import handle_location 
+from app.handlers.voice import handle_voice_message
+
 
 router = APIRouter(prefix="/telegram", tags=["Telegram"])
 
@@ -43,6 +45,14 @@ def telegram_webhook(payload: dict, db: Session = Depends(get_db)):
         return {"ok": True}
 
     # ─────────────────────────────
+    # VOICE MESSAGE (🎙️ MUST COME BEFORE TEXT)
+    # ─────────────────────────────
+    if message.get("voice"):
+        user, _ = handle_onboarding(db, telegram_id, first_name, username, None)
+        handle_voice_message(db, user, telegram_id, message["voice"])
+        return {"ok": True}
+
+    # ─────────────────────────────
     # TEXT MESSAGE
     # ─────────────────────────────
     text = message.get("text")
@@ -52,9 +62,7 @@ def telegram_webhook(payload: dict, db: Session = Depends(get_db)):
     # ─────────────────────────────
     # ONBOARDING (country / timezone)
     # ─────────────────────────────
-    user, handled = handle_onboarding(
-        db, telegram_id, first_name, username, text
-    )
+    user, handled = handle_onboarding(db, telegram_id, first_name, username, text)
     if handled:
         return {"ok": True}
 
