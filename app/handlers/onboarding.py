@@ -51,7 +51,7 @@ def handle_onboarding(db, telegram_id, first_name, username, text):
         send_message(
             telegram_id,
             f"👋 Hi {first_name}!\n\n"
-            "I’m *RemindZ* — your personal reminder assistant.\n\n"
+            "I’m *Memvix* — your personal reminder assistant.\n\n"
             "🌍 Which country are you in?\n"
             "_Example: India, USA, UK_\n\n"
             "📍 Or tap the button below to share your location.",
