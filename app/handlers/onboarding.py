@@ -1,5 +1,6 @@
 from app.models.user import User
 from app.services.telegram_client import send_message
+from sqlalchemy.sql import func
 
 COUNTRY_TIMEZONES = {
     "india": ["Asia/Kolkata"],
@@ -42,7 +43,8 @@ def handle_onboarding(db, telegram_id, first_name, username, text):
             first_name=first_name,
             username=username,
             country=None,
-            timezone=None
+            timezone=None,
+            last_seen=func.now()
         )
         db.add(user)
         db.commit()

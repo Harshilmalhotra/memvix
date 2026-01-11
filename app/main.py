@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from app.api.telegram import router as telegram_router
+from app.api.admin import router as admin_router
 
 app = FastAPI(title="Memvix")
 
@@ -10,6 +11,7 @@ def startup_event():
 
 
 app.include_router(telegram_router)
+app.include_router(admin_router)
 
 
 @app.get("/health")

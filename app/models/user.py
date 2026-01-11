@@ -12,6 +12,7 @@ class User(Base):
     timezone = Column(String, nullable=True)
     preferences = Column(JSON, default=dict)
     country = Column(String, nullable=True)
+    last_seen = Column(DateTime(timezone=True), nullable=True)
     pending_trigger_time = Column(DateTime, nullable=True)
     pending_reminder_message = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

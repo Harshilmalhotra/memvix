@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memvix Mission Control</title>
+    <style>
+        :root {
+            --bg-color: #0b0c10;
+            --card-bg: #1f2833;
+            --text-primary: #c5c6c7;
+            --accent: #66fcf1;
+            --accent-dim: #45a29e;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            padding: 2rem;
+            border-bottom: 1px solid var(--card-bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 1.5rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex: 1;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid rgba(102, 252, 241, 0.1);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--accent);
+            margin: 0.5rem 0;
+        }
+
+        .stat-label {
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+
+        .broadcast-section {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 8px;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: var(--accent);
+        }
+
+        textarea {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--accent-dim);
+            color: white;
+            padding: 1rem;
+            border-radius: 4px;
+            min-height: 200px;
+            font-family: monospace;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: var(--accent);
+            color: var(--bg-color);
+            border: none;
+            padding: 0.8rem 2rem;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: var(--accent-dim);
+            transform: translateY(-2px);
+        }
+
+        .status-message {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .success {
+            background: rgba(102, 252, 241, 0.1);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Memvix Mission Control</h1>
+        <div style="font-family: monospace; color: var(--accent-dim);">STATUS: ONLINE</div>
+    </header>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="card">
+                <div class="stat-label">Total Users</div>
+                <div class="stat-value">{{ total_users }}</div>
+            </div>
+            <div class="card">
+                <div class="stat-label">Active (24h)</div>
+                <div class="stat-value">{{ active_users }}</div>
+            </div>
+        </div>
+
+        <div class="broadcast-section">
+            <h2>📡 Broadcast Transmission</h2>
+            <p style="margin-bottom: 1rem; opacity: 0.8;">Send a markdown-formatted message to all users.</p>
+            
+            <textarea id="messageInput" placeholder="Enter your message here...
+Examples:
+*Bold text*
+_Italic text_
+[Link](https://example.com)"></textarea>
+            
+            <button onclick="sendBroadcast()" id="sendBtn">Launch Broadcast</button>
+            <div id="statusMsg" class="status-message"></div>
+        </div>
+    </div>
+
+    <script>
+        async function sendBroadcast() {
+            const message = document.getElementById('messageInput').value;
+            const btn = document.getElementById('sendBtn');
+            const status = document.getElementById('statusMsg');
+
+            if (!message.trim()) {
+                alert("Please enter a message");
+                return;
+            }
+
+            if (!confirm("Are you sure you want to send this message to ALL users?")) {
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Transmitting...";
+
+            try {
+                const response = await fetch('/admin/broadcast', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message }),
+                });
+
+                if (response.ok) {
+                    status.innerText = "✅ Broadcast transmission initiated successfully.";
+                    status.className = "status-message success";
+                    status.style.display = "block";
+                    document.getElementById('messageInput').value = "";
+                } else {
+                    throw new Error("Transmission failed");
+                }
+            } catch (error) {
+                alert("Error sending broadcast: " + error);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Launch Broadcast";
+            }
+        }
+    </script>
+</body>
+</html>

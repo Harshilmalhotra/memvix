@@ -4,6 +4,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_db
+from app.models.user import User
+from sqlalchemy.sql import func
 from app.handlers.callbacks import handle_callback
 from app.handlers.commands import handle_command
 from app.handlers.onboarding import handle_onboarding
@@ -17,6 +19,20 @@ router = APIRouter(prefix="/telegram", tags=["Telegram"])
 
 @router.post("/webhook")
 def telegram_webhook(payload: dict, db: Session = Depends(get_db)):
+    
+    # Extract telegram_id from message or callback
+    telegram_id = None
+    if payload.get("message"):
+        telegram_id = payload["message"]["from"]["id"]
+    elif payload.get("callback_query"):
+        telegram_id = payload["callback_query"]["from"]["id"]
+
+    # Update last_seen if we have an ID
+    if telegram_id:
+        db.query(User).filter(User.telegram_id == telegram_id).update(
+            {"last_seen": func.now()}
+        )
+        db.commit()
 
     # ─────────────────────────────
     # CALLBACKS (inline buttons)
