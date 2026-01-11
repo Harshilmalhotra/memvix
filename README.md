@@ -26,10 +26,17 @@ graph TD
         API <--> NLP[Duckling NLP]
     end
     
+    subgraph Admin Implementation
+        Admin((Admin)) -->|Browser| API
+        API -->|Render| MissionControl[HTML Dashboard]
+        API -->|Broadcast| BroadcastTask[Background Broadcast]
+    end
+    
     subgraph Background Processing
         Worker[Reminder Worker] <--> DB
         Worker <--> Cache
         Worker -->|Send Message| TG
+        BroadcastTask -->|Send Message| TG
     end
 ```
 
@@ -38,9 +45,38 @@ graph TD
 *   **API (FastAPI)**: Handles incoming webhooks from Telegram, processes user messages, and manages state.
 *   **Worker**: A background process that polls/consumes scheduled tasks and sends out reminders when due.
 *   **PostgreSQL**: Persistent storage for users, reminders, and transaction logs.
-*   **Redis**: Caching layer and message broker for task queues (if applicable).
-*   **Duckling**: A Haskell-based parsing service for extracting structured data (dates, times, numbers) from text.
-*   **Ngrok** (Local Dev): Tunnels localhost to the public internet for Telegram webhooks.
+*   **Redis**: Caching layer and message broker for task queues.
+*   **Duckling**: A Haskell-based parsing service for extracting structured data.
+*   **Admin Dashboard (Mission Control)**: A web interface for tracking stats and broadcasting messages.
+*   **Ngrok** (Local Dev): Tunnels localhost to the public internet.
+
+## 📡 API Documentation
+
+Access the interactive Swagger UI at: [http://localhost:8000/docs#/](http://localhost:8000/docs#/)
+
+### Endpoints
+
+| Method | Path | Description |
+| :--- | :--- | :--- |
+| **GET** | `/admin/mission-control` | **Mission Control**: Web dashboard for stats & user tracking. |
+| **GET** | `/admin/stats` | **Get Stats**: JSON response of total and active users. |
+| **POST** | `/admin/broadcast` | **Broadcast Message**: Send a message to all users. payload: `{"message": "..."}` |
+| **GET** | `/health` | **Health Check**: Service status. |
+
+### Schemas
+
+*   `HTTPValidationError`: Standard validation error response.
+*   `ValidationError`: Details of the validation error.
+
+## 🚇 Ngrok Status
+
+When running locally with Docker, you can inspect the tunnel status and traffic.
+
+*   **Dashboard**: [http://localhost:4040/status](http://localhost:4040/status)
+*   **Get Public URL**:
+    ```bash
+    curl http://localhost:4040/api/tunnels | jq
+    ```
 
 ## 🛠 Tech Stack
 
